@@ -1,0 +1,40 @@
+:root{
+  --bg:#08080c;--surface:#15151f;--surface-2:#1b1b27;--border:#2a2a38;
+  --txt:#ECECF1;--txt-2:#9a9aac;--accent:#ffffff;
+  --glass:rgba(18,18,28,.7);--glass-stroke:#2a2a38;
+  --radius:16px;--nav-h:64px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:radial-gradient(120% 80% at 50% -10%,var(--surface),var(--bg) 55%);
+  color:var(--txt);font-family:var(--font);line-height:1.45;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased}
+.shell{max-width:480px;margin:0 auto;min-height:100vh;
+  padding-bottom:calc(var(--nav-h) + 20px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-weight:800;letter-spacing:-.02em}
+.v-section{padding:16px 18px}
+.v-sec-title{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;
+  color:#c9d4ff;margin:20px 0 10px;font-weight:700}
+.v-card{background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.v-card-row{display:flex;justify-content:space-between;align-items:center;
+  padding:8px 0;border-bottom:1px solid var(--border);font-size:14px}
+.v-card-row:last-child{border-bottom:none}
+.v-muted{color:var(--txt-2);font-size:13px}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.kpi{background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px}
+.kpi-label{font-size:11px;color:var(--txt-2);margin-bottom:4px;
+  text-transform:uppercase;letter-spacing:.8px}
+.kpi-val{font-size:22px;font-weight:800}
+.kpi-sub{font-size:11px;color:#4ade80;margin-top:2px}
+.pill{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.pill-green{background:rgba(74,222,128,.12);color:#4ade80}
+.pill-gold{background:rgba(251,191,36,.12);color:#fbbf24}
+.pill-red{background:rgba(239,68,68,.12);color:#ef4444}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;color:var(--txt-2);text-align:left;padding:8px 12px;
+  border-bottom:1px solid var(--border);font-weight:600}
+td{font-size:13px;padding:12px;border-bottom:1px solid rgba(255,255,255,.04)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
