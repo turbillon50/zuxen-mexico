@@ -40,7 +40,7 @@ export function Splash(){
           boxShadow:"0 0 8px "+p.color+",0 0 16px "+p.color+"55",opacity:0,
           animationName:"particleFloat",animationDuration:"2.2s",
           animationDelay:(p.delay+.4)+"s",animationTimingFunction:"ease-out",
-          animationIterationCount:"infinite",["--dx"]:p.dx}}/>
+          animationIterationCount:"infinite",...({"--dx":p.dx} as React.CSSProperties)}}/>
       ))}
       {/* Rayos de energia cruzando */}
       <div style={{position:"absolute",top:"38%",left:0,right:0,height:2,pointerEvents:"none",
@@ -52,7 +52,7 @@ export function Splash(){
       {/* LOGO OFICIAL desde imagen real */}
       <div style={{animation:"logoIn 1s cubic-bezier(.16,1,.3,1) forwards",opacity:0,
         filter:"drop-shadow(0 0 30px rgba(212,160,23,.6)) drop-shadow(0 0 60px rgba(0,229,255,.3))",
-        animation2:"rainbowGlow 4s linear infinite"}}>
+        willChange:"filter"}}>
         <img src="/logo-zuxen.jpg" alt="ZUXEN" width={220} height={70}
           style={{objectFit:"contain",borderRadius:8,
             animation:"logoIn 1s cubic-bezier(.16,1,.3,1) forwards, rainbowGlow 4s 1s linear infinite",
