@@ -10,7 +10,6 @@ export function ThemeProvider({children}:{children:React.ReactNode}){
   useEffect(()=>{
     const saved=localStorage.getItem("zuxen-theme") as Theme|null;
     if(saved) setTheme(saved);
-    else if(window.matchMedia("(prefers-color-scheme: light)").matches) setTheme("light");
   },[]);
   useEffect(()=>{
     document.documentElement.setAttribute("data-theme",theme);
