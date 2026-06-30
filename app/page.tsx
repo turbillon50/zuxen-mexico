@@ -82,7 +82,7 @@ export default function HomePage(){
         <MeshCanvas/>
         {/* Grid overlay */}
         <div style={{position:"absolute",inset:0,
-          backgroundImage:"linear-gradient(rgba(0,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,255,.04) 1px,transparent 1px)",
+          backgroundImage:"linear-gradient(rgba(0,255,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,255,.1) 1px,transparent 1px)",
           backgroundSize:"40px 40px",pointerEvents:"none"}}/>
         {/* Scanline */}
         <div style={{position:"absolute",left:0,right:0,height:1,
@@ -110,11 +110,10 @@ export default function HomePage(){
               {getGreeting()}, SOFIA
             </div>
             {/* LOGO SIN FONDO */}
-            <img src="/logo-zuxen.jpg" alt="ZUXEN"
+            <img src="/logo-zuxen.png" alt="ZUXEN"
               style={{height:64,objectFit:"contain",objectPosition:"left",
                 display:"block",marginBottom:8,
-                mixBlendMode:"screen",
-                filter:"brightness(1.15) saturate(1.4) drop-shadow(0 0 20px rgba(0,255,255,.7))",
+                filter:"brightness(1.3) saturate(1.6) drop-shadow(0 0 30px rgba(0,255,255,.9)) drop-shadow(0 0 60px rgba(255,0,255,.5))",
                 animation:"rainbowGlow 5s linear infinite"}}/>
             <div style={{display:"flex",gap:8,alignItems:"center"}}>
               <span style={{padding:"2px 8px",borderRadius:3,fontSize:9,fontWeight:800,

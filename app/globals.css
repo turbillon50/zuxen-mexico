@@ -2,7 +2,7 @@
   --bg:#000000;--bg2:#050510;--surface:#0a0a1a;--surface2:#0f0f22;
   --cyan:#00ffff;--magenta:#ff00ff;--green:#39ff14;--gold:#ffd700;
   --violet:#7b2fff;--orange:#ff6600;
-  --border-cyan:rgba(0,255,255,.25);--border-mag:rgba(255,0,255,.2);
+  --border-cyan:rgba(0,255,255,.4);--border-mag:rgba(255,0,255,.2);
   --txt:#e0f0ff;--txt2:#6080a0;
   --glass:rgba(0,0,20,.75);
   --radius:12px;--nav-h:68px;
@@ -22,8 +22,8 @@ body{
 body::before{
   content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
   background-image:
-    linear-gradient(rgba(0,255,255,.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,255,255,.04) 1px,transparent 1px);
+    linear-gradient(rgba(0,255,255,.08) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,255,.08) 1px,transparent 1px);
   background-size:40px 40px;
   mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%);
 }
@@ -49,7 +49,7 @@ h1,h2,h3{font-weight:800;letter-spacing:-.01em}
   -webkit-backdrop-filter:blur(14px) saturate(150%);
   border-radius:var(--radius);padding:18px;margin-bottom:12px;
   transition:border-color .2s,box-shadow .2s;
-  box-shadow:0 0 12px rgba(0,255,255,.06),inset 0 1px 0 rgba(0,255,255,.08);
+  box-shadow:0 0 20px rgba(0,255,255,.12),inset 0 1px 0 rgba(0,255,255,.08);
 }
 .v-card:active{border-color:var(--cyan);box-shadow:0 0 24px rgba(0,255,255,.2)}
 .v-section{padding:12px 18px}

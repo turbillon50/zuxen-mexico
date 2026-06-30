@@ -39,7 +39,7 @@ export default function ProductosPage(){
       {/* Imagen catálogo oficial */}
       <div className="v-section" style={{paddingBottom:0}}>
         <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:.1}}>
-          <img src="/catalogo-zuxen.jpg" alt="Catálogo Zuxen"
+          <img src="/catalogo-zuxen.png" alt="Catálogo Zuxen"
             style={{width:"100%",borderRadius:20,border:"1px solid rgba(212,160,23,.2)",
               boxShadow:"0 0 30px rgba(212,160,23,.15)",marginBottom:20}}/>
         </motion.div>

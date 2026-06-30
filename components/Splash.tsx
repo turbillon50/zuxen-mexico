@@ -67,7 +67,7 @@ export function Splash(){
           background:"radial-gradient(circle,rgba(0,255,255,.15),transparent 70%)",
           animationName:"mp",animationDuration:"2s",animationIterationCount:"infinite",
           pointerEvents:"none"}}/>
-        <img src="/logo-zuxen.jpg" alt="ZUXEN"
+        <img src="/logo-zuxen.png" alt="ZUXEN"
           style={{width:240,height:"auto",display:"block",
             mixBlendMode:"screen" as React.CSSProperties["mixBlendMode"],
             animationName:"rg",animationDuration:"4s",animationTimingFunction:"linear",
