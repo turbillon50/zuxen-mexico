@@ -1,88 +1,139 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
-const RANK_STYLE:Record<string,{color:string;glow:string;icon:string}>={
-  Oro:{color:"#f0c040",glow:"rgba(240,192,64,.55)",icon:"🧁"},
-  Plata:{color:"#00e5ff",glow:"rgba(0,229,255,.5)",icon:"🧁"},
-  Bronce:{color:"#b48c50",glow:"rgba(180,140,80,.4)",icon:"🧁"},
-  Nuevo:{color:"#6b82b8",glow:"rgba(107,130,184,.25)",icon:"🟣"},
+/* ─── Paleta ─────────────────────────────────────────────────── */
+const C = {
+  cyan:   "#00c8ff",
+  gold:   "#f5a623",
+  green:  "#4ade80",
+  red:    "#ff4d6d",
+  void:   "#06080f",
+  surf:   "rgba(255,255,255,0.07)",
+  surfHi: "rgba(255,255,255,0.13)",
+  border: "rgba(0,200,255,0.18)",
 };
 
-type N={id:number;name:string;nivel:string;earn:number;av:string;phone?:string;estado?:string;children:N[]};
+/* ─── Rangos ──────────────────────────────────────────────────── */
+const RANK: Record<string,{color:string;glow:string;label:string}> = {
+  Oro:    { color:"#f5a623", glow:"rgba(245,166,35,.5)",   label:"ORO"    },
+  Plata:  { color:"#00c8ff", glow:"rgba(0,200,255,.45)",   label:"PLATA"  },
+  Bronce: { color:"#cd7f32", glow:"rgba(205,127,50,.4)",   label:"BRONCE" },
+  Nuevo:  { color:"#8b9fd4", glow:"rgba(139,159,212,.3)",  label:"NUEVO"  },
+};
 
-const ME:N={id:0,name:"Tu",nivel:"Plata",earn:3840,av:"TU",phone:"+52 442 000 0000",estado:"Queretaro",children:[
-  {id:1,name:"Sofia Ramirez",nivel:"Oro",earn:5200,av:"SR",phone:"+52 442 111 2233",estado:"CDMX",children:[
-    {id:3,name:"Valentina Rios",nivel:"Bronce",earn:720,av:"VR",phone:"+52 333 444 5566",estado:"Guadalajara",children:[]},
-    {id:4,name:"Andres Nava",nivel:"Nuevo",earn:0,av:"AN",estado:"Monterrey",children:[]},
-  ]},
-  {id:2,name:"Mateo Hernandez",nivel:"Plata",earn:2100,av:"MH",phone:"+52 81 2233 4455",estado:"Monterrey",children:[
-    {id:5,name:"Camila Lopez",nivel:"Bronce",earn:480,av:"CL",children:[]},
-    {id:6,name:"Diego Morales",nivel:"Nuevo",earn:120,av:"DM",children:[]},
-    {id:7,name:"Lucia Torres",nivel:"Nuevo",earn:0,av:"LT",children:[]},
-  ]},
-  {id:8,name:"Fernanda Cruz",nivel:"Bronce",earn:340,av:"FC",phone:"+52 222 334 4556",estado:"Puebla",children:[
-    {id:9,name:"Pablo Ruiz",nivel:"Nuevo",earn:0,av:"PR",children:[]},
-  ]},
-]};
+/* ─── Tipos & datos demo ──────────────────────────────────────── */
+type N = {
+  id:number; name:string; nivel:string; earn:number;
+  av:string; phone?:string; estado?:string; children:N[];
+};
 
-const FILTROS=["Todos","Oro","Plata","Bronce","Nuevo"];
+const ME:N = {
+  id:0, name:"Tu", nivel:"Plata", earn:3840, av:"TU",
+  phone:"+52 442 000 0000", estado:"Queretaro",
+  children:[
+    { id:1, name:"Sofia Ramirez",    nivel:"Oro",    earn:5200, av:"SR",
+      phone:"+52 442 111 2233", estado:"CDMX",
+      children:[
+        { id:3, name:"Valentina Rios", nivel:"Bronce", earn:720, av:"VR",
+          phone:"+52 333 444 5566", estado:"Guadalajara", children:[] },
+        { id:4, name:"Andres Nava",    nivel:"Nuevo",  earn:0,   av:"AN",
+          estado:"Monterrey", children:[] },
+      ]},
+    { id:2, name:"Mateo Hernandez",  nivel:"Plata",  earn:2100, av:"MH",
+      phone:"+52 81 2233 4455", estado:"Monterrey",
+      children:[
+        { id:5, name:"Camila Lopez",  nivel:"Bronce", earn:480, av:"CL", children:[] },
+        { id:6, name:"Diego Morales", nivel:"Nuevo",  earn:120, av:"DM", children:[] },
+        { id:7, name:"Lucia Torres",  nivel:"Nuevo",  earn:0,   av:"LT", children:[] },
+      ]},
+    { id:8, name:"Fernanda Cruz",    nivel:"Bronce", earn:340, av:"FC",
+      phone:"+52 222 334 4556", estado:"Puebla",
+      children:[
+        { id:9, name:"Pablo Ruiz",    nivel:"Nuevo",  earn:0,   av:"PR", children:[] },
+      ]},
+  ],
+};
 
-function NodeModal({node,onClose,isDark}:{node:N;onClose:()=>void;isDark:boolean}){
-  const s=RANK_STYLE[node.nivel]||RANK_STYLE.Nuevo;
-  const bg=isDark?"#0d1535":"#f8f9ff";
-  const txt=isDark?"#e8eeff":"#1a1f3a";
-  const txt2=isDark?"#6b82b8":"#6b7fa3";
-  return(
+const FILTROS = ["Todos","Oro","Plata","Bronce","Nuevo"];
+
+/* ─── Modal de detalle ────────────────────────────────────────── */
+function NodeModal({ node, onClose }: { node:N; onClose:()=>void }) {
+  const r = RANK[node.nivel] ?? RANK.Nuevo;
+  const rows:[string,string][] = [
+    ["Estado",      node.estado || "México"],
+    ["Teléfono",    node.phone  || "—"],
+    ["Ganancias",   node.earn > 0 ? `$${node.earn.toLocaleString("es-MX")} MXN` : "Sin ganancias"],
+    ["Red directa", `${node.children.length} distribuidores`],
+  ];
+  return (
     <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
       onClick={onClose}
-      style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",zIndex:100,
-        display:"flex",alignItems:"flex-end",backdropFilter:"blur(6px)"}}>
-      <motion.div initial={{y:320}} animate={{y:0}} exit={{y:320}}
+      style={{position:"fixed",inset:0,zIndex:200,
+        background:"rgba(0,0,0,.72)",backdropFilter:"blur(8px)",
+        display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+      <motion.div
+        initial={{y:"100%"}} animate={{y:0}} exit={{y:"100%"}}
         transition={{type:"spring",stiffness:340,damping:34}}
         onClick={e=>e.stopPropagation()}
-        style={{background:bg,borderRadius:"24px 24px 0 0",
-          border:"1px solid "+s.color+"33",borderBottom:0,
-          padding:24,width:"100%",maxWidth:480,
-          paddingBottom:"calc(24px + env(safe-area-inset-bottom))"}}>
-        <div style={{width:40,height:4,borderRadius:2,background:"rgba(107,130,184,.25)",margin:"0 auto 22px"}}/>
-        <div style={{display:"flex",gap:16,alignItems:"center",marginBottom:20}}>
-          <div style={{width:58,height:58,borderRadius:"50%",flexShrink:0,
-            background:"radial-gradient(135deg,"+s.color+"22,transparent)",
-            border:"2.5px solid "+s.color,display:"flex",alignItems:"center",
-            justifyContent:"center",fontSize:14,fontWeight:800,color:s.color,
-            boxShadow:"0 0 18px "+s.glow}}>
+        style={{width:"100%",maxWidth:480,
+          background:"linear-gradient(160deg,#0e1830,#06080f)",
+          borderRadius:"28px 28px 0 0",
+          border:`1.5px solid ${r.color}44`,borderBottom:"none",
+          padding:"24px 24px calc(32px + env(safe-area-inset-bottom))"}}>
+
+        {/* handle */}
+        <div style={{width:44,height:5,borderRadius:3,
+          background:"rgba(255,255,255,.15)",margin:"0 auto 24px"}}/>
+
+        {/* cabecera */}
+        <div style={{display:"flex",gap:16,alignItems:"center",marginBottom:24}}>
+          <div style={{width:64,height:64,borderRadius:"50%",flexShrink:0,
+            background:`radial-gradient(135deg,${r.color}28,transparent)`,
+            border:`3px solid ${r.color}`,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            fontSize:16,fontWeight:900,color:r.color,
+            boxShadow:`0 0 24px ${r.glow}`}}>
             {node.av}
           </div>
           <div>
-            <div style={{fontSize:17,fontWeight:800,color:txt}}>{node.name}</div>
-            <span style={{display:"inline-block",marginTop:5,padding:"3px 10px",
-              borderRadius:20,background:s.color+"18",color:s.color,
-              fontSize:11,fontWeight:700,border:"1px solid "+s.color+"30"}}>
-              {node.nivel}
+            <div style={{fontSize:18,fontWeight:800,color:"#fff",marginBottom:6}}>
+              {node.name}
+            </div>
+            <span style={{display:"inline-block",padding:"4px 12px",borderRadius:20,
+              background:`${r.color}22`,color:r.color,
+              fontSize:11,fontWeight:700,letterSpacing:1,
+              border:`1px solid ${r.color}44`}}>
+              {r.label}
             </span>
           </div>
         </div>
-        {[["Estado",node.estado||"Mexico"],["Telefono",node.phone||"—"],
-          ["Ganancias",node.earn>0?"$"+node.earn.toLocaleString("es-MX")+" MXN":"Sin ganancias"],
-          ["Red directa",node.children.length+" distribuidores"]].map(([l,v])=>(
-          <div key={l} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
-            padding:"11px 0",borderBottom:"1px solid rgba(107,130,184,.12)"}}>
-            <span style={{color:txt2,fontSize:13}}>{l}</span>
-            <span style={{fontWeight:700,fontSize:13,color:txt}}>{v}</span>
+
+        {/* filas */}
+        {rows.map(([label,val])=>(
+          <div key={label} style={{display:"flex",justifyContent:"space-between",
+            alignItems:"center",padding:"12px 0",
+            borderBottom:"1px solid rgba(255,255,255,.07)"}}>
+            <span style={{color:"#8b9fd4",fontSize:13}}>{label}</span>
+            <span style={{fontWeight:700,fontSize:13,color:
+              label==="Ganancias"&&node.earn>0 ? C.green : "#fff"}}>{val}</span>
           </div>
         ))}
-        <div style={{display:"flex",gap:10,marginTop:22}}>
-          <a href={"https://wa.me/"+(node.phone||"").replace(/\D/g,"")}
-            style={{flex:1,background:"linear-gradient(135deg,#25d366,#128c7e)",color:"#fff",
-              borderRadius:14,padding:"14px 0",textAlign:"center",fontWeight:800,fontSize:14,
-              textDecoration:"none",display:"block"}}>
-            WhatsApp
-          </a>
+
+        {/* botones */}
+        <div style={{display:"flex",gap:12,marginTop:24}}>
+          {node.phone && (
+            <a href={`https://wa.me/${(node.phone).replace(/\D/g,"")}`}
+              style={{flex:1,background:"linear-gradient(135deg,#25d366,#128c7e)",
+                color:"#fff",borderRadius:16,padding:"15px 0",textAlign:"center",
+                fontWeight:800,fontSize:14,textDecoration:"none",display:"block"}}>
+              WhatsApp
+            </a>
+          )}
           <button onClick={onClose}
-            style={{flex:1,background:"transparent",color:txt2,
-              border:"1px solid rgba(107,130,184,.25)",borderRadius:14,padding:14,
-              fontFamily:"inherit",fontWeight:600,fontSize:14}}>
+            style={{flex:1,background:"rgba(255,255,255,.06)",color:"#8b9fd4",
+              border:"1px solid rgba(255,255,255,.12)",borderRadius:16,padding:15,
+              fontFamily:"inherit",fontWeight:700,fontSize:14,cursor:"pointer"}}>
             Cerrar
           </button>
         </div>
@@ -91,97 +142,153 @@ function NodeModal({node,onClose,isDark}:{node:N;onClose:()=>void;isDark:boolean
   );
 }
 
-const NODE_W={0:72,1:60,2:50};
+/* ─── Nodo del árbol ──────────────────────────────────────────── */
+const SZ = [86, 68, 54] as const;
 
-function TNode({node,depth=0,index=0,filtro,onSel,isDark}:{
-  node:N;depth?:number;index?:number;filtro:string;onSel:(n:N)=>void;isDark:boolean
-}){
-  const s=RANK_STYLE[node.nivel]||RANK_STYLE.Nuevo;
-  const isRoot=depth===0;
-  const dim=filtro!=="Todos"&&node.nivel!==filtro&&!isRoot;
-  const sz=(NODE_W[depth as 0|1|2]||42) as number;
-  const surface=isDark?"rgba(11,21,53,.9)":"rgba(255,255,255,.9)";
-  const txt=isDark?"#e8eeff":"#1a1f3a";
+function TNode({
+  node, depth=0, index=0, filtro, onSel,
+}:{
+  node:N; depth?:number; index?:number; filtro:string; onSel:(n:N)=>void;
+}) {
+  const r    = RANK[node.nivel] ?? RANK.Nuevo;
+  const isRoot = depth===0;
+  const dim  = filtro!=="Todos" && node.nivel!==filtro && !isRoot;
+  const sz   = SZ[Math.min(depth,2) as 0|1|2];
 
-  return(
+  /* refs para calcular posición de líneas SVG */
+  const selfRef  = useRef<HTMLDivElement>(null);
+  const childRefs = useRef<(HTMLDivElement|null)[]>([]);
+
+  return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",
-      opacity:dim?.2:1,transition:"opacity .3s"}}>
+      opacity:dim?0.18:1,transition:"opacity .35s",position:"relative"}}>
+
+      {/* — Nodo — */}
       <motion.div
-        initial={{opacity:0,scale:.5,y:24}}
+        initial={{opacity:0,scale:.4,y:20}}
         animate={{opacity:1,scale:1,y:0}}
-        transition={{type:"spring",stiffness:300,damping:24,delay:depth*.1+index*.05}}
-        whileTap={{scale:.88}}
+        transition={{type:"spring",stiffness:280,damping:22,delay:depth*.12+index*.06}}
+        whileTap={{scale:.87}}
         onClick={()=>onSel(node)}
-        style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,
-          cursor:"pointer",position:"relative"}}>
-        {/* Halo pulsante en activos con ganancias */}
-        {node.earn>0&&(
+        style={{display:"flex",flexDirection:"column",alignItems:"center",
+          gap:7,cursor:"pointer",position:"relative",zIndex:2}}>
+
+        {/* halo pulsante */}
+        {node.earn>0 && (
           <motion.div
-            animate={{scale:[1,1.35,1],opacity:[.5,0,.5]}}
-            transition={{repeat:Infinity,duration:2.4,ease:"easeOut"}}
-            style={{position:"absolute",width:sz+12,height:sz+12,borderRadius:"50%",
-              background:s.color+"22",top:-6,left:-6,pointerEvents:"none"}}/>
+            animate={{scale:[1,1.5,1],opacity:[.4,0,.4]}}
+            transition={{repeat:Infinity,duration:2.6,ease:"easeOut"}}
+            style={{position:"absolute",
+              width:sz+16,height:sz+16,borderRadius:"50%",
+              background:`${r.color}20`,top:-8,left:-8,pointerEvents:"none"}}/>
         )}
-        {/* Avatar */}
+
+        {/* círculo */}
         <motion.div
-          animate={isRoot?{boxShadow:["0 0 0 0 "+s.color+"60","0 0 0 10px "+s.color+"00"]}:{}}
-          transition={isRoot?{repeat:Infinity,duration:2.2}:{}}
-          style={{width:sz,height:sz,borderRadius:"50%",
-            background:surface,
-            border:"2.5px solid "+s.color,
+          ref={selfRef}
+          animate={isRoot?{
+            boxShadow:[
+              `0 0 0 0 ${r.color}70`,
+              `0 0 0 14px ${r.color}00`,
+            ],
+          }:{}}
+          transition={isRoot?{repeat:Infinity,duration:2.4}:{}}
+          style={{
+            width:sz,height:sz,borderRadius:"50%",
+            background:isRoot
+              ? `radial-gradient(135deg,${r.color}30 0%,rgba(0,0,0,.4) 100%)`
+              : C.surf,
+            border:`${isRoot?3:2.5}px solid ${r.color}`,
             display:"flex",alignItems:"center",justifyContent:"center",
-            fontSize:isRoot?14:depth===1?12:10,fontWeight:800,color:s.color,
-            boxShadow:"0 0 16px "+s.glow+", 0 2px 8px rgba(0,0,0,.3)",
-            position:"relative",backdropFilter:"blur(8px)"}}>
+            fontSize:isRoot?15:depth===1?13:11,fontWeight:900,color:"#fff",
+            boxShadow:`0 0 ${isRoot?28:16}px ${r.glow}, 0 4px 12px rgba(0,0,0,.5)`,
+            backdropFilter:"blur(10px)",
+            position:"relative",
+            userSelect:"none",
+          }}>
           {node.av}
-          {isRoot&&(
-            <div style={{position:"absolute",top:-3,right:-3,width:13,height:13,
-              borderRadius:"50%",background:"#00ff88",
-              boxShadow:"0 0 8px #00ff88",border:"2px solid "+surface}}/>
+          {/* punto online root */}
+          {isRoot && (
+            <div style={{position:"absolute",top:-2,right:-2,
+              width:14,height:14,borderRadius:"50%",
+              background:"#00ff88",
+              boxShadow:"0 0 10px #00ff88",
+              border:"2.5px solid #06080f"}}/>
           )}
         </motion.div>
-        {/* Label */}
-        <div style={{textAlign:"center",maxWidth:sz+20}}>
-          <div style={{fontSize:isRoot?12:depth===1?11:10,fontWeight:700,color:txt,
-            whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-            {isRoot?"Tu":node.name.split(" ")[0]}
+
+        {/* labels */}
+        <div style={{textAlign:"center",width:sz+24}}>
+          <div style={{fontSize:isRoot?13:depth===1?12:10,fontWeight:700,
+            color:"#fff",whiteSpace:"nowrap",
+            overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>
+            {isRoot?"Tú":node.name.split(" ")[0]}
           </div>
-          <div style={{fontSize:9,color:s.color,fontWeight:700,letterSpacing:.5,marginTop:1}}>
-            {node.nivel}
+          <div style={{
+            marginTop:3,display:"inline-block",
+            padding:"2px 8px",borderRadius:10,
+            background:`${r.color}22`,
+            border:`1px solid ${r.color}50`,
+            fontSize:9,fontWeight:800,color:r.color,letterSpacing:.8}}>
+            {r.label}
           </div>
-          {node.earn>0&&(
-            <div style={{fontSize:9,color:"#00ff88",marginTop:1,fontWeight:600}}>
-              ${(node.earn/1000).toFixed(1)}k
+          {node.earn>0 && (
+            <div style={{fontSize:10,color:C.green,
+              marginTop:3,fontWeight:700}}>
+              +${(node.earn/1000).toFixed(1)}k
             </div>
           )}
         </div>
       </motion.div>
 
-      {/* Hijos con líneas limpias */}
-      {node.children.length>0&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-          {/* Linea vertical */}
-          <motion.div
-            initial={{height:0}} animate={{height:20}}
-            transition={{delay:depth*.1+.1,duration:.3}}
-            style={{width:2,background:"linear-gradient(180deg,"+s.color+"80,"+s.color+"30)",
-              borderRadius:1}}/>
-          {/* Linea horizontal + hijos */}
-          <div style={{position:"relative",display:"flex",gap:8,alignItems:"flex-start"}}>
-            {node.children.length>1&&(
-              <div style={{position:"absolute",top:0,left:"50%",
-                transform:"translateX(-50%)",
-                width:"calc(100% - "+(sz/2)+"px)",height:2,
-                background:"linear-gradient(90deg,transparent,"+s.color+"40,transparent)",
-                borderRadius:1}}/>
+      {/* — Rama hijos — */}
+      {node.children.length > 0 && (
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",marginTop:4}}>
+          {/* línea vertical central */}
+          <svg width="2" height="32" style={{display:"block"}}>
+            <defs>
+              <linearGradient id={`vg${node.id}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={r.color} stopOpacity=".9"/>
+                <stop offset="100%" stopColor={C.gold}  stopOpacity=".6"/>
+              </linearGradient>
+            </defs>
+            <line x1="1" y1="0" x2="1" y2="32"
+              stroke={`url(#vg${node.id})`} strokeWidth="2.5"/>
+          </svg>
+
+          {/* fila de hijos */}
+          <div style={{display:"flex",gap:16,alignItems:"flex-start",
+            position:"relative"}}>
+
+            {/* línea horizontal que conecta hijos */}
+            {node.children.length>1 && (
+              <svg
+                style={{position:"absolute",top:0,left:0,
+                  width:"100%",height:"2px",overflow:"visible",pointerEvents:"none"}}>
+                <defs>
+                  <linearGradient id={`hg${node.id}`} x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%"   stopColor={r.color} stopOpacity=".0"/>
+                    <stop offset="30%"  stopColor={r.color} stopOpacity=".9"/>
+                    <stop offset="70%"  stopColor={C.gold}  stopOpacity=".9"/>
+                    <stop offset="100%" stopColor={C.gold}  stopOpacity=".0"/>
+                  </linearGradient>
+                </defs>
+                <line x1="0" y1="1" x2="100%" y2="1"
+                  stroke={`url(#hg${node.id})`} strokeWidth="2"/>
+              </svg>
             )}
-            {node.children.map((ch,i)=>(
-              <div key={ch.id} style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                <motion.div initial={{height:0}} animate={{height:16}}
-                  transition={{delay:depth*.1+i*.04+.2,duration:.3}}
-                  style={{width:2,background:RANK_STYLE[ch.nivel]?.color+"50"||"#6b82b850",borderRadius:1}}/>
-                <TNode node={ch} depth={depth+1} index={i}
-                  filtro={filtro} onSel={onSel} isDark={isDark}/>
+
+            {node.children.map((child,i)=>(
+              <div key={child.id} ref={el=>{childRefs.current[i]=el}}
+                style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+                {/* línea vertical hacia hijo */}
+                <svg width="2" height="22" style={{display:"block"}}>
+                  <line x1="1" y1="0" x2="1" y2="22"
+                    stroke={RANK[child.nivel]?.color ?? C.cyan}
+                    strokeWidth="2" strokeOpacity=".75"/>
+                </svg>
+                <TNode node={child} depth={depth+1} index={i}
+                  filtro={filtro} onSel={onSel}/>
               </div>
             ))}
           </div>
@@ -191,78 +298,90 @@ function TNode({node,depth=0,index=0,filtro,onSel,isDark}:{
   );
 }
 
-export function NetworkTree({isDark}:{isDark:boolean}){
-  const [sel,setSel]=useState<N|null>(null);
-  const [filtro,setFiltro]=useState("Todos");
-  const totalRed=ME.children.reduce((a,n)=>a+1+n.children.length,0);
-  const totalEarn=ME.children.reduce((a,n)=>a+n.earn+n.children.reduce((b,c)=>b+c.earn,0),0);
-  const border=isDark?"rgba(212,160,23,.15)":"rgba(10,21,100,.1)";
-  const txt=isDark?"#e8eeff":"#1a1f3a";
-  const txt2=isDark?"#6b82b8":"#6b7fa3";
-  const kpiSurf=isDark?"rgba(11,21,53,.8)":"rgba(255,255,255,.85)";
+/* ─── Componente principal ────────────────────────────────────── */
+export function NetworkTree({ isDark }: { isDark:boolean }) {
+  const [filtro, setFiltro]   = useState("Todos");
+  const [selected, setSelected] = useState<N|null>(null);
 
-  return(
-    <div>
-      {/* Stats */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
-        <div style={{background:kpiSurf,border:"1px solid rgba(212,160,23,.25)",
-          backdropFilter:"blur(12px)",borderRadius:18,padding:16}}>
-          <div style={{fontSize:10,color:txt2,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Red total</div>
-          <div style={{fontSize:24,fontWeight:900,color:txt}}>{totalRed}</div>
-          <div style={{fontSize:11,color:"#00e5ff",marginTop:2}}>distribuidores</div>
-        </div>
-        <div style={{background:kpiSurf,border:"1px solid rgba(212,160,23,.25)",
-          backdropFilter:"blur(12px)",borderRadius:18,padding:16}}>
-          <div style={{fontSize:10,color:txt2,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Ganancias red</div>
-          <div style={{fontSize:24,fontWeight:900,color:txt}}>${(totalEarn/1000).toFixed(1)}k</div>
-          <div style={{fontSize:11,color:"#f0c040",marginTop:2}}>este mes</div>
-        </div>
+  /* stats rápidas */
+  const total  = 1 + ME.children.reduce((a,c)=>a+1+c.children.length,0);
+  const ganado = ME.earn + ME.children.reduce((a,c)=>a+c.earn+c.children.reduce((b,cc)=>b+cc.earn,0),0);
+
+  return (
+    <div style={{position:"relative"}}>
+
+      {/* — Stats strip — */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",
+        gap:10,marginBottom:20}}>
+        {[
+          ["Red total",  `${total} nodos`,               C.cyan],
+          ["Ganancias",  `$${(ganado/1000).toFixed(1)}k`, C.green],
+          ["Tu rango",   "PLATA",                         C.gold],
+        ].map(([l,v,col])=>(
+          <div key={l as string}
+            style={{background:C.surf,border:`1px solid ${col as string}30`,
+              borderRadius:14,padding:"12px 10px",textAlign:"center"}}>
+            <div style={{fontSize:16,fontWeight:800,color:col as string}}>{v}</div>
+            <div style={{fontSize:10,color:"#8b9fd4",marginTop:3,letterSpacing:.5}}>{l}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Filtros */}
-      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>
+      {/* — Filtros — */}
+      <div style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:4,marginBottom:24,
+        scrollbarWidth:"none"}}>
         {FILTROS.map(f=>{
-          const active=filtro===f;
-          return(
+          const active = f===filtro;
+          const col = f==="Todos"?C.cyan : (RANK[f]?.color??C.cyan);
+          return (
             <button key={f} onClick={()=>setFiltro(f)}
-              style={{padding:"5px 12px",borderRadius:20,border:"1px solid",
-                fontFamily:"inherit",fontSize:11,fontWeight:700,cursor:"pointer",
-                transition:"all .2s",
-                background:active?"#f0c040":isDark?"rgba(212,160,23,.08)":"rgba(10,21,100,.06)",
-                color:active?"#06080f":txt2,
-                borderColor:active?"#f0c040":isDark?"rgba(212,160,23,.2)":"rgba(10,21,100,.12)"}}>
+              style={{flexShrink:0,padding:"7px 16px",borderRadius:20,
+                fontFamily:"inherit",fontWeight:700,fontSize:12,cursor:"pointer",
+                letterSpacing:.6,transition:"all .2s",
+                border:`1.5px solid ${active?col:"rgba(255,255,255,.12)"}`,
+                background: active?`${col}22`:"transparent",
+                color:active?col:"#8b9fd4"}}>
               {f}
             </button>
           );
         })}
       </div>
 
-      {/* Leyenda */}
-      <div style={{display:"flex",gap:14,marginBottom:20,flexWrap:"wrap"}}>
-        {Object.entries(RANK_STYLE).map(([r,s])=>(
-          <div key={r} style={{display:"flex",alignItems:"center",gap:6}}>
-            <div style={{width:8,height:8,borderRadius:"50%",background:s.color,
-              boxShadow:"0 0 5px "+s.color}}/>
-            <span style={{fontSize:11,color:txt2,fontWeight:600}}>{r}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Arbol NITIDO */}
-      <div style={{overflowX:"auto",overflowY:"visible",paddingBottom:24,
+      {/* — Árbol con scroll horizontal — */}
+      <div style={{overflowX:"auto",overflowY:"visible",
+        padding:"12px 16px 32px",
+        background:"linear-gradient(160deg,rgba(0,200,255,.04),rgba(245,166,35,.03),transparent)",
+        borderRadius:20,
+        border:"1px solid rgba(0,200,255,.1)",
+        scrollbarWidth:"none",
         WebkitOverflowScrolling:"touch"}}>
-        <div style={{display:"flex",justifyContent:"center",
-          padding:"12px 32px 32px",minWidth:"max-content"}}>
-          <TNode node={ME} filtro={filtro} onSel={setSel} isDark={isDark}/>
+        <div style={{minWidth:"fit-content",display:"flex",
+          justifyContent:"center",paddingTop:8}}>
+          <TNode node={ME} filtro={filtro} onSel={setSelected}/>
         </div>
       </div>
 
-      <p style={{textAlign:"center",fontSize:11,color:txt2,marginTop:4,marginBottom:8}}>
-        Toca un nodo para ver detalles y WhatsApp
-      </p>
+      {/* — Leyenda — */}
+      <div style={{display:"flex",gap:16,flexWrap:"wrap",
+        marginTop:18,paddingLeft:4}}>
+        {Object.entries(RANK).map(([k,v])=>(
+          <div key={k} style={{display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:10,height:10,borderRadius:"50%",
+              background:v.color,boxShadow:`0 0 6px ${v.glow}`}}/>
+            <span style={{fontSize:11,color:"#8b9fd4",fontWeight:600}}>{v.label}</span>
+          </div>
+        ))}
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <div style={{width:10,height:10,borderRadius:"50%",background:C.green}}/>
+          <span style={{fontSize:11,color:"#8b9fd4",fontWeight:600}}>Con ganancias</span>
+        </div>
+      </div>
 
+      {/* — Modal — */}
       <AnimatePresence>
-        {sel&&<NodeModal node={sel} onClose={()=>setSel(null)} isDark={isDark}/>}
+        {selected && (
+          <NodeModal node={selected} onClose={()=>setSelected(null)}/>
+        )}
       </AnimatePresence>
     </div>
   );
