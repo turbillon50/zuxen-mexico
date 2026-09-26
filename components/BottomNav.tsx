@@ -1,51 +1,26 @@
-"use client";
-import { usePathname,useRouter } from "next/navigation";
-const IC:Record<string,string>={
-  home:"M3 11l9-8 9 8M5 10v10h14V10",
-  shop:"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18m-5 4a4 4 0 0 1-8 0",
-  net:"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8m11 0l-2-2-2 2m0-4l2 2 2-2",
-  chart:"M3 3v18h18M7 16l4-4 4 4 4-8",
-  user:"M12 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 20c0-4 4-6 8-6s8 2 8 6",
-};
+'use client';
+import Link from 'next/link';
+import {usePathname} from 'next/navigation';
 const TABS=[
-  {href:"/",icon:"home",label:"Inicio"},
-  {href:"/productos",icon:"shop",label:"Productos"},
-  {href:"/red",icon:"net",label:"Mi Red"},
-  {href:"/admin",icon:"chart",label:"Admin"},
-  {href:"/perfil",icon:"user",label:"Perfil"},
+  {href:'/',label:'Inicio',d:'M3 9L12 2l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z M9 22V12h6v10'},
+  {href:'/red',label:'Mi Red',d:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'},
+  {href:'/productos',label:'Productos',d:'M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z M3 6h18 M16 10a4 4 0 0 1-8 0'},
+  {href:'/perfil',label:'Perfil',d:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'},
 ];
-function Ico({name,filled}:{name:string;filled:boolean}){
-  return(
-    <svg width={22} height={22} viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d={IC[name]??IC.home} fill={filled?"currentColor":"none"}/>
-    </svg>
-  );
-}
-export function BottomNav(){
+export default function BottomNav(){
   const path=usePathname();
-  const router=useRouter();
   return(
-    <nav data-vulcano-bottomnav aria-label="Navegacion principal" style={{
-      position:"fixed",left:0,right:0,bottom:0,zIndex:40,maxWidth:480,
-      margin:"0 auto",height:"var(--nav-h)",display:"flex",
-      alignItems:"center",justifyContent:"space-around",
-      background:"var(--glass)",backdropFilter:"blur(16px) saturate(140%)",
-      WebkitBackdropFilter:"blur(16px) saturate(140%)",
-      borderTop:"1px solid var(--glass-stroke)",
-      paddingBottom:"env(safe-area-inset-bottom)"}}>
+    <nav data-vulcano-bottomnav style={{position:'fixed',bottom:0,left:0,right:0,height:'var(--nav-h)',background:'rgba(6,11,31,0.88)',backdropFilter:'blur(18px)',borderTop:'1px solid var(--border)',display:'flex',justifyContent:'space-around',alignItems:'center',zIndex:1000}}>
       {TABS.map(tab=>{
-        const active=path===tab.href||(tab.href!=="/"&&path.startsWith(tab.href));
+        const active=path===tab.href;
         return(
-          <button key={tab.href} onClick={()=>router.push(tab.href)}
-            aria-current={active?"page":undefined}
-            style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,
-              fontSize:10,color:active?"#fff":"var(--txt-2)",flex:1,border:0,
-              background:"none",fontFamily:"inherit",cursor:"pointer",transition:".2s",
-              filter:active?"drop-shadow(0 0 8px rgba(255,255,255,.5))":"none"}}>
-            <Ico name={tab.icon} filled={active}/>
-            <span>{tab.label}</span>
-          </button>
+          <Link key={tab.href} href={tab.href} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,textDecoration:'none',color:active?'var(--cyan)':'var(--txt-2)',transition:'color .2s',padding:'4px 12px'}}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{animation:active?'float 2s ease-in-out infinite':undefined}}>
+              {tab.d.split(' M').map((seg,i)=><path key={i} d={(i===0?'':' M')+seg}/>)}
+            </svg>
+            <span style={{fontSize:'0.65rem',fontWeight:active?700:400,letterSpacing:'0.04em'}}>{tab.label}</span>
+            {active&&<span style={{width:4,height:4,borderRadius:'50%',background:'var(--cyan)',boxShadow:'0 0 8px var(--cyan)'}}/>}
+          </Link>
         );
       })}
     </nav>

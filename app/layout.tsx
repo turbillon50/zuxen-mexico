@@ -1,24 +1,23 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { Splash } from "@/components/Splash";
-import { BottomNav } from "@/components/BottomNav";
-export const metadata: Metadata = {
-  title: "ZUXEN MEXICO",
-  description: "Bioactivadores de bienestar premium para personas y mascotas",
-  manifest: "/manifest.webmanifest",
-};
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
+'use client';
+import './globals.css';
+import {useState,useEffect} from 'react';
+import BottomNav from '@/components/BottomNav';
+import Splash from '@/components/Splash';
+export default function RootLayout({children}:{children:React.ReactNode}){
+  const [loading,setLoading]=useState(true);
+  useEffect(()=>{const t=setTimeout(()=>setLoading(false),2500);return()=>clearTimeout(t);},[]);
+  return(
     <html lang="es">
       <head>
-        <meta name="theme-color" content="#08080c"/>
-        <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-        <link rel="apple-touch-icon" href="/icons/icon-192.png"/>
+        <title>ZUXEN MEXICO</title>
+        <meta name="description" content="Bioactivadores que transforman tu vida y la de tus mascotas."/>
+        <meta name="viewport" content="width=device-width,initial-scale=1"/>
+        <meta name="theme-color" content="#0a0f2e"/>
+        <link rel="manifest" href="/manifest.webmanifest"/>
+        <link rel="icon" href="/icons/icon-192.png"/>
       </head>
-      <body>
-        <Splash/>
-        <div className="shell">{children}</div>
-        <BottomNav/>
+      <body style={{paddingBottom:'var(--nav-h)'}}>
+        {loading?<Splash/>:<>{children}<BottomNav/></>}
       </body>
     </html>
   );
